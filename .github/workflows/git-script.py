@@ -106,14 +106,6 @@ def main():
         print(f"{RED}[Error]{RESET} Commit failed: {e}")
         sys.exit(1)
 
-    # 4. Switch Back to Main
-    try:
-        repo.git.checkout('main')
-        print(f"{GREEN}[OK]{RESET} Switched back to 'main'")
-    except GitCommandError as e:
-        print(f"{RED}[Error]{RESET} Could not switch to main: {e}")
-        sys.exit(1)
-
     # 5. Push Feature Branch
     try:
         origin = repo.remote('origin')
