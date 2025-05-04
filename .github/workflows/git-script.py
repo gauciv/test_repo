@@ -13,6 +13,7 @@ YELLOW = '\033[93m'
 RED = '\033[91m'
 CYAN = '\033[96m'
 RESET = '\033[0m'
+MAGENTA = '\033[95m'
 
 # ----------------------------------------
 # Validators & Prompts
@@ -53,6 +54,40 @@ def clear_screen():
     else:
         os.system("clear")  # Command for clearing the screen on Linux/macOS
 
+def fetch_and_pull(repo):
+    print(f"\n{MAGENTA}###### Fetching Remote Changes ######{RESET}")
+    try:
+        origin = repo.remote('origin')
+        origin.fetch()
+        print(f"{GREEN}[OK]{RESET} Fetched latest changes from remote.")
+
+        # Check if there are changes on the remote
+        remote_diff = repo.git.log('HEAD..origin/main', '--oneline')
+        if remote_diff:
+            print(f"{CYAN}[Info]{RESET} Changes detected on the remote repository.")
+            
+            # Check if the working tree is clean
+            if repo.is_dirty(untracked_files=True):
+                print(f"{YELLOW}[Warning]{RESET} Local changes detected. Stashing changes before pulling.")
+                repo.git.stash('save', '--include-untracked')
+                
+                # Pull changes from the remote
+                repo.git.pull('origin', 'main')
+                print(f"{GREEN}[OK]{RESET} Pulled latest changes into 'main'.")
+
+                # Pop the stash if it was created
+                if repo.git.stash('list'):
+                    print(f"{CYAN}[Info]{RESET} Restoring stashed changes.")
+                    repo.git.stash('pop')
+            else:
+                print(f"{YELLOW}[Notice]{RESET} Working tree is clean. Please make some changes before running the script again.")
+                sys.exit(0)
+        else:
+            print(f"{CYAN}[Info]{RESET} No changes detected on the remote. Proceeding with the script.")
+    except GitCommandError as e:
+        print(f"{RED}[Error]{RESET} Fetch/Pull failed: {e}")
+        sys.exit(1)
+
 # ----------------------------------------
 # Main Workflow
 # ----------------------------------------
@@ -73,6 +108,8 @@ def main():
         print(f"{RED}[Error]{RESET} Not a git repository.")
         sys.exit(1)
 
+    # Fetch and pull changes
+    fetch_and_pull(repo)
     # Banner
     print(f"\n{CYAN}{'='*10} Starting Gitflow {'='*10}{RESET}\n")
 
