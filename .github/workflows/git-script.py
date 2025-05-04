@@ -17,19 +17,8 @@ BLUE = '\033[94m'
 WHITE_BG = '\033[107m'
 BLACK_TEXT = '\033[30m'
 MAGENTA = '\033[95m'
-PROCESS_BG = '\033[104m'  # Bright Blue Background
-PROCESS_TEXT = '\033[97m'  # White Text
 INPUT_BG = '\033[100m'  # Gray Background
 INPUT_TEXT = '\033[97m'  # White Text
-
-PROCESS_COLORS = {
-    "Fetching Remote Changes": '\033[105m',  # Magenta Background
-    "Starting Gitflow": '\033[106m',         # Cyan Background
-    "Branch Setup": '\033[103m',            # Yellow Background
-    "Staging Changes": '\033[102m',         # Green Background
-    "Commit Setup": '\033[101m',            # Red Background
-    "Pushing Changes": '\033[104m',         # Bright Blue Background
-}
 
 # ----------------------------------------
 # Utility Functions
@@ -38,8 +27,7 @@ def print_banner(title: str):
     print(f"{RESET}\n{WHITE_BG}{BLACK_TEXT}{' ' * 5} {title.center(40)} {' ' * 5}{RESET}")
 
 def print_section(title: str):
-    bg_color = PROCESS_COLORS.get(title, PROCESS_BG)
-    print(f"\n{bg_color}{PROCESS_TEXT}{' ' * 5} [PROCESS] {title.upper().center(30)} {' ' * 5}{RESET}")
+    print(f"\n{BLUE}>> [PROCESS] {title.upper()} {RESET}")
 
 def print_log(message: str, color: str = RESET):
     print(f"{color}>> {message}{RESET}")
@@ -135,8 +123,6 @@ def main():
         sys.exit(1)
 
     fetch_and_pull(repo)
-    print_section("Starting Gitflow")
-
     branch = prompt_branch(repo, args.branch)
     try:
         repo.git.checkout('-b', branch)
