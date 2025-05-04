@@ -174,7 +174,7 @@ def main():
         print_log(f"[ERROR] Push failed: {e}", RED)
         sys.exit(1)
 
-    print_banner("GITFLOW COMPLETE")
+    print_banner("\nGITFLOW COMPLETE")
 
 if __name__ == "__main__":
     main()
