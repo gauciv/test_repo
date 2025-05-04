@@ -13,7 +13,18 @@ YELLOW = '\033[93m'
 RED = '\033[91m'
 CYAN = '\033[96m'
 RESET = '\033[0m'
-MAGENTA = '\033[95m'
+BLUE = '\033[94m'
+WHITE_BG = '\033[107m'
+BLACK_TEXT = '\033[30m'
+
+# ----------------------------------------
+# Utility Functions
+# ----------------------------------------
+def print_banner(title: str):
+    print(f"\n{WHITE_BG}{BLACK_TEXT} {' ' * 5} {title} {' ' * 5} {RESET}\n")
+
+def print_section(title: str):
+    print(f"\n{BLUE}{'=' * 10} {title} {'=' * 10}{RESET}\n")
 
 # ----------------------------------------
 # Validators & Prompts
@@ -22,7 +33,7 @@ def valid_branch(name: str) -> bool:
     return bool(re.match(r'^(?!/|.*([~^:\?\*\[\\])).+(?<!/)$', name))
 
 def prompt_branch(repo, arg_branch=None):
-    print(f"\n{CYAN}###### Branch Setup ######{RESET}")
+    print_section("Branch Setup")
     if arg_branch:
         if not valid_branch(arg_branch):
             print(f"{RED}[Error]{RESET} Invalid branch name: {arg_branch}")
@@ -36,7 +47,7 @@ def prompt_branch(repo, arg_branch=None):
         return name
 
 def prompt_commit_msg(arg_msg=None):
-    print(f"\n{CYAN}###### Commit Setup ######{RESET}")
+    print_section("Commit Setup")
     if arg_msg:
         return arg_msg
     while True:
@@ -47,40 +58,35 @@ def prompt_commit_msg(arg_msg=None):
         confirm = input(f"{CYAN}? Confirm message [y/N]:{RESET} ").lower()
         if confirm.startswith('y'):
             return msg
-        
+
 def clear_screen():
     if platform.system() == "Windows":
-        os.system("cls")  # Command for clearing the screen on Windows
+        os.system("cls")
     else:
-        os.system("clear")  # Command for clearing the screen on Linux/macOS
+        os.system("clear")
 
+# ----------------------------------------
+# Git Operations
+# ----------------------------------------
 def fetch_and_pull(repo):
-    print(f"\n{MAGENTA}###### Fetching Remote Changes ######{RESET}")
+    print_section("Fetching Remote Changes")
     try:
         origin = repo.remote('origin')
         origin.fetch()
         print(f"{GREEN}[OK]{RESET} Fetched latest changes from remote.")
 
-        # Check if there are changes on the remote
         remote_diff = repo.git.log('HEAD..origin/main', '--oneline')
         if remote_diff:
             print(f"{CYAN}[Info]{RESET} Changes detected on the remote repository.")
-            
-            # Check if the working tree is clean
             if repo.is_dirty(untracked_files=True):
                 print(f"{YELLOW}[Warning]{RESET} Local changes detected. Stashing changes before pulling.")
                 repo.git.stash('save', '--include-untracked')
-                
-                # Pull changes from the remote
                 repo.git.pull('origin', 'main')
                 print(f"{GREEN}[OK]{RESET} Pulled latest changes into 'main'.")
-
-                # Pop the stash if it was created
                 if repo.git.stash('list'):
                     print(f"{CYAN}[Info]{RESET} Restoring stashed changes.")
                     repo.git.stash('pop')
         else:
-            # Check if the working tree is clean
             if not repo.is_dirty(untracked_files=True):
                 print(f"{YELLOW}[Notice]{RESET} No changes on the remote and the working tree is clean.")
                 print(f"{CYAN}[Info]{RESET} Please make some changes before running the script again.")
@@ -96,6 +102,7 @@ def fetch_and_pull(repo):
 # ----------------------------------------
 def main():
     clear_screen()
+    print_banner("Gitflow Automation")
     parser = argparse.ArgumentParser(
         description=f"{CYAN}=== Gitflow Automation ==={RESET}",
         formatter_class=argparse.RawTextHelpFormatter
@@ -104,19 +111,15 @@ def main():
     parser.add_argument("--message", "-m", help="Commit message to use")
     args = parser.parse_args()
 
-    # Open repo
     try:
         repo = Repo('.', search_parent_directories=True)
     except Exception:
         print(f"{RED}[Error]{RESET} Not a git repository.")
         sys.exit(1)
 
-    # Fetch and pull changes
     fetch_and_pull(repo)
-    # Banner
-    print(f"\n{CYAN}{'='*10} Starting Gitflow {'='*10}{RESET}\n")
+    print_section("Starting Gitflow")
 
-    # 1. Branch Creation & Checkout
     branch = prompt_branch(repo, args.branch)
     try:
         repo.git.checkout('-b', branch)
@@ -129,7 +132,6 @@ def main():
             print(f"{RED}[Error]{RESET} Could not checkout branch: {e}")
             sys.exit(1)
 
-    # 2. Stage Changes
     try:
         repo.git.add('--all')
         print(f"{GREEN}[OK]{RESET} Staged all changes")
@@ -137,7 +139,6 @@ def main():
         print(f"{RED}[Error]{RESET} Staging failed: {e}")
         sys.exit(1)
 
-    # 3. Commit
     msg = prompt_commit_msg(args.message)
     try:
         repo.git.commit('-m', msg)
@@ -146,7 +147,6 @@ def main():
         print(f"{RED}[Error]{RESET} Commit failed: {e}")
         sys.exit(1)
 
-    # 5. Push Feature Branch
     try:
         origin = repo.remote('origin')
         origin.push(branch)
@@ -155,8 +155,7 @@ def main():
         print(f"{RED}[Error]{RESET} Push failed: {e}")
         sys.exit(1)
 
-    # Done
-    print(f"\n{CYAN}{'='*10} Gitflow Complete {'='*10}{RESET}\n")
+    print_banner("Gitflow Complete")
 
 if __name__ == "__main__":
     main()
