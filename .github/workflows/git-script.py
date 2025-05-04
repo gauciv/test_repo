@@ -79,11 +79,14 @@ def fetch_and_pull(repo):
                 if repo.git.stash('list'):
                     print(f"{CYAN}[Info]{RESET} Restoring stashed changes.")
                     repo.git.stash('pop')
-            else:
-                print(f"{YELLOW}[Notice]{RESET} Working tree is clean. Please make some changes before running the script again.")
-                sys.exit(0)
         else:
-            print(f"{CYAN}[Info]{RESET} No changes detected on the remote. Proceeding with the script.")
+            # Check if the working tree is clean
+            if not repo.is_dirty(untracked_files=True):
+                print(f"{YELLOW}[Notice]{RESET} No changes on the remote and the working tree is clean.")
+                print(f"{CYAN}[Info]{RESET} Please make some changes before running the script again.")
+                sys.exit(0)
+            else:
+                print(f"{CYAN}[Info]{RESET} No changes detected on the remote. Proceeding with the script.")
     except GitCommandError as e:
         print(f"{RED}[Error]{RESET} Fetch/Pull failed: {e}")
         sys.exit(1)
