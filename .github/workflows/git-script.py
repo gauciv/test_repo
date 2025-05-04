@@ -35,7 +35,7 @@ PROCESS_COLORS = {
 # Utility Functions
 # ----------------------------------------
 def print_banner(title: str):
-    print(f"{WHITE_BG}{BLACK_TEXT}{' ' * 5} {title.center(40)} {' ' * 5}{RESET}")
+    print(f"{RESET}\n{WHITE_BG}{BLACK_TEXT}{' ' * 5} {title.center(40)} {' ' * 5}{RESET}")
 
 def print_section(title: str):
     bg_color = PROCESS_COLORS.get(title, PROCESS_BG)
@@ -174,7 +174,7 @@ def main():
         print_log(f"[ERROR] Push failed: {e}", RED)
         sys.exit(1)
 
-    print_banner("\nGITFLOW COMPLETE")
+    print_banner("GITFLOW COMPLETE")
 
 if __name__ == "__main__":
     main()
